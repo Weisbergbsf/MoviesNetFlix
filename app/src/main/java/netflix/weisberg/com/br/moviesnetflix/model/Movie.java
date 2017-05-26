@@ -16,5 +16,4 @@ public class Movie implements Serializable{
     @SerializedName("summary")
     public String summary;
 
-
 }

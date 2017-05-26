@@ -13,10 +13,10 @@ import com.squareup.picasso.Picasso;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+//import netflix.weisberg.com.br.moviesnetflix.R;
 import netflix.weisberg.com.br.moviesnetflix.R;
 import netflix.weisberg.com.br.moviesnetflix.http.MovieHttp;
 import netflix.weisberg.com.br.moviesnetflix.model.Movie;
-
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
 
@@ -81,9 +81,9 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         public MovieViewHolder(View parent) {
             super(parent);
             ButterKnife.bind(this, parent);
-            ViewCompat.setTransitionName(poster, "poster");
-            ViewCompat.setTransitionName(txtTitulo, "showTitle");
-            ViewCompat.setTransitionName(txtAno, "releaseYear");
+//            ViewCompat.setTransitionName(poster, "poster");
+//            ViewCompat.setTransitionName(txtTitulo, "showTitle");
+//            ViewCompat.setTransitionName(txtAno, "releaseYear");
         }
 
 
