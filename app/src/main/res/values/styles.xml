@@ -7,6 +7,7 @@
         <item name="colorPrimary">@color/cor_primaria</item>
         <item name="colorPrimaryDark">@color/cor_primaria_escura</item>
         <item name="colorAccent">@color/cor_acentuada</item>
+        <item name="colorControlNormal">@android:color/darker_gray</item>
     </style>
     <style name="AppTheme" parent="AppTheme.Base"></style>
     <style name="AppTheme.Translucent" parent="AppTheme"></style>

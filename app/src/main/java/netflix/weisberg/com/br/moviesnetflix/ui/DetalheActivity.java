@@ -16,6 +16,7 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -95,8 +96,12 @@ public class DetalheActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.home:
+                Intent intent = NavUtils.getParentActivityIntent(this);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                NavUtils.navigateUpTo(this, intent);
+                return true;
             case R.id.share:
-
                 Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
                 sharingIntent.setType("text/plain");
                 sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareMovieContent());
@@ -105,6 +110,15 @@ public class DetalheActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    public Intent getParentActivityIntent() {
+        Intent it = super.getParentActivityIntent();
+        if(it != null){
+            it.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        }
+        return it;
     }
 
     private String shareMovieContent()  {
@@ -145,9 +159,7 @@ public class DetalheActivity extends AppCompatActivity {
                         mFabFavorito.setBackgroundTintList(getFabBackground(favorito));
                         ((MovieApp)getApplication()).getBus().post(new MovieEvento(movie));
                     }
-
                 }
-
         );
         snackbar.setActionTextColor(Color.RED);
 
@@ -164,17 +176,6 @@ public class DetalheActivity extends AppCompatActivity {
 
     private Drawable getFabIcone(boolean favorito) {
         return getResources().getDrawable(favorito ? R.drawable.ic_delete : R.drawable.ic_favorito);
-    }
-
-    @Override
-    public void onBackPressed(){
-        mFabFavorito.animate().scaleX(0).scaleY(0).setListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                super.onAnimationEnd(animation);
-                DetalheActivity.super.onBackPressed();
-            }
-        }).start();
     }
 
     private void configurarAnimacaoEntrada() {
