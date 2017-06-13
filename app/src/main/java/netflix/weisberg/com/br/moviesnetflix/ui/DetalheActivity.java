@@ -158,17 +158,6 @@ public class DetalheActivity extends AppCompatActivity {
         snackbar.show();
     }
 
-//    private void animar(boolean favorito) {
-//        mFabFavorito.setBackgroundTintList(getFabBackground(favorito));
-//        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-//            AnimatedVectorDrawable avd = (AnimatedVectorDrawable)getFabIcone(!favorito);
-//            mFabFavorito.setImageDrawable(avd);
-//            avd.start();
-//        }else{
-//            mFabFavorito.setImageDrawable(getFabIcone(favorito));
-//        }
-//    }
-
     private ColorStateList getFabBackground(boolean favorito) {
         return getResources().getColorStateList(favorito ? R.color.bg_fab_delete : R.color.bg_fab_favorito);
     }
