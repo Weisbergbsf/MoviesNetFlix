@@ -1,12 +1,9 @@
 package netflix.weisberg.com.br.moviesnetflix.ui;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.drawable.AnimatedVectorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.Nullable;
@@ -104,7 +101,7 @@ public class DetalheActivity extends AppCompatActivity {
             case R.id.share:
                 Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
                 sharingIntent.setType("text/plain");
-                sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareMovieContent());
+                sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, compartilharConteudoDoFilme());
                 startActivity(Intent.createChooser(sharingIntent, getResources().getString(R.string.opcoes_compartilhamento)));
                 return true;
             default:
@@ -121,10 +118,9 @@ public class DetalheActivity extends AppCompatActivity {
         return it;
     }
 
-    private String shareMovieContent()  {
+    private String compartilharConteudoDoFilme()  {
         Movie movie = (Movie)getIntent().getSerializableExtra(EXTRA_MOVIE);
-        String movieContent = "Gostei do filme: "+movie.showTitle+ "\n"+ "Clique no link para ver o poster: "+movie.poster;
-        return movieContent;
+        return getString(R.string.texto_compartilhar, movie.showTitle, movie.poster);
     }
 
     private void configurarFab(final Movie movie) {

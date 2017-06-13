@@ -17,5 +17,6 @@
     <string name="msg_nenhum_resultado">Nenhum resultado encontrado.</string>
     <string name="acao_compartilhar">Compartilhar</string>
     <string name="opcoes_compartilhamento">Opcões de compartilhamento</string>
+    <string name="texto_compartilhar">Gostei do filme: %1$s "\n" Clique no link para ver o poster: %2$s</string>
 
 </resources>
