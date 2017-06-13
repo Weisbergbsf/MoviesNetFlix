@@ -11,9 +11,13 @@ public class Movie implements Serializable{
     public String showTitle;
     @SerializedName("release_year")
     public int releaseYear;
+    @SerializedName("director")
+    public String diretor;
     @SerializedName("poster")
     public String poster;
     @SerializedName("summary")
     public String summary;
+    @SerializedName("show_cast")
+    public String cast;
 
 }

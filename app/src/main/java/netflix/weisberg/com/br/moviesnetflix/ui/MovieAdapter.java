@@ -14,7 +14,6 @@ import com.squareup.picasso.Picasso;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import netflix.weisberg.com.br.moviesnetflix.R;
-import netflix.weisberg.com.br.moviesnetflix.http.MovieHttp;
 import netflix.weisberg.com.br.moviesnetflix.model.Movie;
 
 
@@ -59,7 +58,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     @Override
     public void onBindViewHolder(MovieViewHolder holder, int position) {
         Movie movie = mMovies[position];
-        Picasso.with(mContext).load(MovieHttp.BASE_URL + movie.poster).into(holder.poster);
+
+        Picasso.with(mContext).load(movie.poster).placeholder(R.mipmap.no_image).into(holder.poster);
         holder.txtTitulo.setText(movie.showTitle);
         holder.txtAno.setText(String.valueOf(movie.releaseYear));
 
@@ -85,8 +85,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             ViewCompat.setTransitionName(txtTitulo, "showTitle");
             ViewCompat.setTransitionName(txtAno, "releaseYear");
         }
-
-
     }
 
 }

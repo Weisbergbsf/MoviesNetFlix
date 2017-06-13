@@ -1,6 +1,7 @@
 package netflix.weisberg.com.br.moviesnetflix.ui;
 
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
@@ -9,14 +10,23 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.util.Pair;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+
+import java.io.IOException;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -24,7 +34,7 @@ import netflix.weisberg.com.br.moviesnetflix.R;
 import netflix.weisberg.com.br.moviesnetflix.http.MovieHttp;
 import netflix.weisberg.com.br.moviesnetflix.model.Movie;
 
-public class ListaMoviesWebFragment extends Fragment implements MovieAdapter.AoClicarNoMovieListener{
+public class ListaMoviesWebFragment extends Fragment implements MovieAdapter.AoClicarNoMovieListener, SearchView.OnQueryTextListener{
 
     @Bind(R.id.swipeRefresh)
     SwipeRefreshLayout mSwipe;
@@ -32,27 +42,22 @@ public class ListaMoviesWebFragment extends Fragment implements MovieAdapter.AoC
     RecyclerView mRecyclerView;
 
     Movie[] mMovies;
-    MoviesDownloadTask mTask;
+
+    public ListaMoviesWebFragment(){}
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         setRetainInstance(true);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
         View v = inflater.inflate(R.layout.lista_movies, container, false);
         ButterKnife.bind(this, v);
-        mSwipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                mTask = new MoviesDownloadTask();
-                mTask.execute();
-            }
-        });
-        mRecyclerView.setTag("web");
-        mRecyclerView.setHasFixedSize(true);
+
         if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
             mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         }else{
@@ -64,6 +69,17 @@ public class ListaMoviesWebFragment extends Fragment implements MovieAdapter.AoC
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_search, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.search);
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        searchView.setOnQueryTextListener(this);
+
+    }
+
+    @Override
     public void onDestroyView(){
         super.onDestroyView();
         ButterKnife.unbind(this);
@@ -72,38 +88,24 @@ public class ListaMoviesWebFragment extends Fragment implements MovieAdapter.AoC
     @Override
     public void onActivityCreated(Bundle saveInstanceState){
         super.onActivityCreated(saveInstanceState);
-        if(mMovies == null){
-            if(mTask == null){
-                mTask = new MoviesDownloadTask();
-                mTask.execute();
-            }else if(mTask.getStatus() == AsyncTask.Status.RUNNING){
-                exibirProgresso();
-            }
-        }else{
+        if(mMovies != null) {
             atualizarLista();
         }
     }
 
     @Override
-    public void onDestroy(){
-        super.onDestroy();
-        if(mTask != null) mTask.cancel(true);
-    }
-
-    @Override
     public void aoClicarNoMovie(View v, int position, Movie movie) {
-//        ActivityOptionsCompat options =  ActivityOptionsCompat.makeSceneTransitionAnimation(
-//                        getActivity(),
-//                        Pair.create(v.findViewById(R.id.imgCapa), "capa"),
-//                        Pair.create(v.findViewById(R.id.txtTitulo), "titulo"),
-//                        Pair.create(v.findViewById(R.id.txtAno), "ano")
-//                );
-//        Intent it = new Intent(getActivity(), DetalheActivity.class);
-//        it.putExtra(DetalheActivity.EXTRA_DISCO, disco);
-//        ActivityCompat.startActivity(getActivity(), it, options.toBundle());
+
+        ActivityOptionsCompat options =  ActivityOptionsCompat.makeSceneTransitionAnimation(
+                        getActivity(),
+                        Pair.create(v.findViewById(R.id.poster), "poster"),
+                        Pair.create(v.findViewById(R.id.txtTitulo), "showTitle"),
+                        Pair.create(v.findViewById(R.id.txtAno), "releaseYear")
+                );
+        Intent it = new Intent(getActivity(), DetalheActivity.class);
+        it.putExtra(DetalheActivity.EXTRA_MOVIE, movie);
+        ActivityCompat.startActivity(getActivity(), it, options.toBundle());
     }
-
-
 
     private void atualizarLista(){
         MovieAdapter adapter = new MovieAdapter(getActivity(), mMovies);
@@ -111,26 +113,33 @@ public class ListaMoviesWebFragment extends Fragment implements MovieAdapter.AoC
         mRecyclerView.setAdapter(adapter);
     }
 
-    private void exibirProgresso(){
-        mSwipe.post(new Runnable() {
-            @Override
-            public void run() {
-                mSwipe.setRefreshing(true);
-            }
-        });
-    }
-
-    class MoviesDownloadTask extends AsyncTask<Void, Void, Movie[]>{
-
-        @Override
-        protected void onPreExecute(){
-            super.onPreExecute();
-            exibirProgresso();
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        if(query.length() < 5){
+            Toast.makeText(getActivity(), R.string.msg_erro_texto_consulta, Toast.LENGTH_LONG).show();
+        }else {
+            new MovieSearchTask().execute(query);
         }
 
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        return false;
+    }
+
+    class MovieSearchTask extends AsyncTask<String, Void, Movie[]>{
+
         @Override
-        protected Movie[] doInBackground(Void... params) {
-            return MovieHttp.obterDiscosDoServidor();
+        protected Movie[] doInBackground(String... params) {
+            try {
+                return  MovieHttp.obterDiscosDoServidor(params[0]);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
         }
 
         @Override
@@ -140,7 +149,12 @@ public class ListaMoviesWebFragment extends Fragment implements MovieAdapter.AoC
             if(movies != null){
                 mMovies = movies;
                 atualizarLista();
+            }else{
+                Toast.makeText(getContext(), R.string.msg_nenhum_resultado, Toast.LENGTH_SHORT).show();
+
             }
         }
+
     }
+
 }

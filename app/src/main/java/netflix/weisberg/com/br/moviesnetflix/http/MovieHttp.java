@@ -1,39 +1,36 @@
 package netflix.weisberg.com.br.moviesnetflix.http;
 
-import android.util.Log;
-
 import com.google.gson.Gson;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
-import java.util.concurrent.TimeUnit;
+import java.io.IOException;
 
 import netflix.weisberg.com.br.moviesnetflix.model.Movie;
 
 
 public class MovieHttp {
 
-    public static final String BASE_URL = "http://netflixroulette.net/api/api.php?actor=Arnold";
+    public static Movie[] obterDiscosDoServidor(String ator) throws Exception {
 
-    public static Movie[] obterDiscosDoServidor(){
+        String url = String.format("http://netflixroulette.net/api/api.php?actor=%s", ator);
+
+        String json = getResponse(url);
+        Gson gson = new Gson();
+        Movie[] result = gson.fromJson(json, Movie[].class);
+
+        return result;
+
+    }
+
+    private static String getResponse(String url) throws IOException {
         OkHttpClient client = new OkHttpClient();
-        client.setReadTimeout(5, TimeUnit.SECONDS);
-        client.setConnectTimeout(10, TimeUnit.SECONDS);
-        Request request = new Request.Builder()
-                .url(BASE_URL)
-                .build();
-        try {
-            Response response = client.newCall(request).execute();
-            String json = response.body().string();
-            Gson gson = new Gson();
-            return gson.fromJson(json, Movie[].class);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
 
+        Request request = new Request.Builder().url(url).build();
 
-        return null;
+        Response response = client.newCall(request).execute();
+        return response.body().string();
     }
 
 }
