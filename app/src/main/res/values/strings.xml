@@ -9,7 +9,7 @@
     <string name="tab_favoritos">Favoritos</string>
 
     <string name="snackbar_desfazer">DESFAZER</string>
-    <string name="snackbar_item_deletado">ITEM DELETADO</string>
+    <string name="snackbar_item_deletado">FILME REMOVIDO</string>
 
     <string name="hint_search">Buscar filmes</string>
 

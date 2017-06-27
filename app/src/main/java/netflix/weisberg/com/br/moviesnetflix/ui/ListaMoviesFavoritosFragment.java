@@ -2,7 +2,11 @@ package netflix.weisberg.com.br.moviesnetflix.ui;
 
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
@@ -11,10 +15,13 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
@@ -56,6 +63,7 @@ public class ListaMoviesFavoritosFragment extends Fragment implements MovieAdapt
         View v = inflater.inflate(R.layout.lista_movies, container, false);
 
         ButterKnife.bind(this, v);
+        configuraSwipeParaExcluirMovie();
         mSwipe.setEnabled(false);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
@@ -80,14 +88,7 @@ public class ListaMoviesFavoritosFragment extends Fragment implements MovieAdapt
             mMovies = mMovieDb.getMovies();
         }
         atualizarLista();
-    }
-
-    private void atualizarLista() {
-        Movie[] array = new Movie[mMovies.size()];
-        mMovies.toArray(array);
-        MovieAdapter adapter = new MovieAdapter(getActivity(), array);
-        adapter.setAoClicarNoMovieListener(this);
-        mRecyclerView.setAdapter(adapter);
+        existeConexao();
     }
 
     @Override
@@ -101,6 +102,80 @@ public class ListaMoviesFavoritosFragment extends Fragment implements MovieAdapt
         Intent intent = new Intent(getActivity(), DetalheActivity.class);
         intent.putExtra(DetalheActivity.EXTRA_MOVIE, movie);
         ActivityCompat.startActivity(getActivity(), intent, options.toBundle());
+    }
+
+    private boolean existeConexao(){
+        ConnectivityManager cm =
+                (ConnectivityManager)getContext().getSystemService(getContext().CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+
+        if(isConnected){
+            atualizarLista();
+            return true;
+        }else{
+            Toast.makeText(getContext(), "Verifique sua conexão", Toast.LENGTH_LONG).show();
+            return false;
+        }
+    }
+
+    private void configuraSwipeParaExcluirMovie(){
+        ItemTouchHelper.SimpleCallback swipe = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                final int position = viewHolder.getAdapterPosition();
+                excluirMovie(position);
+            }
+        };
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(swipe);
+        itemTouchHelper.attachToRecyclerView(mRecyclerView);
+    }
+
+    private void excluirMovie(final int position) {
+        final Movie movie = mMovies.get(position);
+        boolean  favorito = mMovieDb.favorito(movie);
+        mMovieDb.excluir(movie);
+        refresh();
+        desfazerExclusao(favorito, movie);
+    }
+
+    private void desfazerExclusao(final boolean favorito, final Movie movie) {
+        Snackbar snackbar = Snackbar.make(getView(), R.string.snackbar_item_deletado, Snackbar.LENGTH_LONG)
+                .setAction(R.string.snackbar_desfazer, new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                mMovieDb.inserir(movie);
+                                refresh();
+                            }
+                        }
+                );
+        snackbar.setActionTextColor(Color.RED);
+
+        View sbView = snackbar.getView();
+        TextView textView = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+        textView.setTextColor(Color.YELLOW);
+
+        snackbar.show();
+    }
+
+    private void refresh(){
+        mMovies.clear();
+        mMovies.addAll(mMovieDb.getMovies());
+        atualizarLista();
+    }
+
+    private void atualizarLista() {
+        Movie[] array = new Movie[mMovies.size()];
+        mMovies.toArray(array);
+        MovieAdapter adapter = new MovieAdapter(getActivity(), array);
+        adapter.setAoClicarNoMovieListener(this);
+        mRecyclerView.setAdapter(adapter);
     }
 
     @Subscribe
